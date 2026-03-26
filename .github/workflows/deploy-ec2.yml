@@ -1,0 +1,53 @@
+name: Deploy To EC2
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            APP_DIR=/var/www/eduno-exam
+            REPO_URL=https://github.com/ankitpandey65/edunoOMR.git
+
+            if [ ! -d "$APP_DIR/.git" ]; then
+              sudo mkdir -p "$APP_DIR"
+              sudo chown -R "$USER":"$USER" "$APP_DIR"
+              git clone "$REPO_URL" "$APP_DIR"
+            fi
+
+            cd "$APP_DIR"
+            git fetch origin
+            git checkout main || git checkout master
+            git reset --hard origin/main || git reset --hard origin/master
+
+            chmod +x deploy/ec2/setup-server.sh deploy/ec2/deploy-app.sh deploy/ec2/enable-nginx.sh
+            ./deploy/ec2/setup-server.sh
+
+            if [ -n "${{ secrets.EC2_ENV_FILE }}" ]; then
+              cat > .env <<'EOF'
+            ${{ secrets.EC2_ENV_FILE }}
+            EOF
+            fi
+
+            if [ ! -f .env ]; then
+              cp .env.example .env
+            fi
+
+            ./deploy/ec2/deploy-app.sh
+            ./deploy/ec2/enable-nginx.sh

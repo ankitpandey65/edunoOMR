@@ -1,10 +1,10 @@
-# Deploy on EC2 (Ubuntu) - Eduno Exam
+# Deploy on EC2 (Amazon Linux/Ubuntu) - Eduno Exam
 
-This deploy flow runs your app on EC2 behind Nginx with PM2 auto-restart.
+This deploy flow runs your app on EC2 behind Nginx with PM2 auto-restart, and supports auto-deploy from GitHub on every push.
 
 ## 1) EC2 prerequisites
 
-- Ubuntu 22.04 or 24.04 instance
+- Amazon Linux 2023 or Ubuntu 22.04/24.04
 - Security Group inbound:
   - `22` (SSH)
   - `80` (HTTP)
@@ -12,10 +12,10 @@ This deploy flow runs your app on EC2 behind Nginx with PM2 auto-restart.
 
 ## 2) Copy code to EC2
 
-SSH into EC2:
+SSH into EC2 (Amazon Linux default user is `ec2-user`):
 
 ```bash
-ssh -i /path/to/key.pem ubuntu@<EC2_PUBLIC_IP>
+ssh -i /path/to/key.pem ec2-user@<EC2_PUBLIC_IP>
 ```
 
 Create app directory and copy project:
@@ -72,7 +72,28 @@ git pull
 ./deploy/ec2/deploy-app.sh
 ```
 
-## 7) Useful commands
+## 7) Auto-deploy pipeline (GitHub -> EC2)
+
+Workflow file:
+
+- `.github/workflows/deploy-ec2.yml`
+
+Required GitHub repository secrets:
+
+- `EC2_HOST` -> your public IP (example `65.0.125.186`)
+- `EC2_USER` -> `ec2-user`
+- `EC2_SSH_KEY` -> full private key content (PEM text)
+- `EC2_ENV_FILE` -> full `.env` file content for server
+
+After setting secrets:
+
+1. Push code to `main`
+2. Workflow `Deploy To EC2` runs automatically
+3. EC2 server pulls latest git code and redeploys
+
+You can also run it manually from Actions using `workflow_dispatch`.
+
+## 8) Useful commands
 
 ```bash
 pm2 status
@@ -81,7 +102,7 @@ pm2 restart eduno-exam
 sudo systemctl status nginx
 ```
 
-## 8) Enable HTTPS (recommended)
+## 9) Enable HTTPS (recommended)
 
 If you have a domain pointing to EC2:
 
