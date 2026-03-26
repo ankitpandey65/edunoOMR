@@ -41,8 +41,11 @@ echo "[4/8] Installing PM2..."
 sudo npm install -g pm2
 
 echo "[5/8] Installing Python libs for OMR PDF rendering..."
-python3 -m pip install --upgrade --user --break-system-packages pymupdf pillow || \
-python3 -m pip install --upgrade --user pymupdf pillow
+if python3 -m pip install --help 2>/dev/null | grep -q -- "--break-system-packages"; then
+  python3 -m pip install --upgrade --user --break-system-packages pymupdf pillow
+else
+  python3 -m pip install --upgrade --user pymupdf pillow
+fi
 
 echo "[6/8] Creating app directory..."
 sudo mkdir -p "$APP_DIR"

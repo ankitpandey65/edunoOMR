@@ -3,6 +3,13 @@ set -euo pipefail
 
 APP_DIR="${APP_DIR:-/var/www/eduno-exam}"
 PORT="${PORT:-3000}"
+LOCK_FILE="${LOCK_FILE:-/tmp/eduno-deploy.lock}"
+
+exec 9>"$LOCK_FILE"
+if ! flock -n 9; then
+  echo "Another deployment is already running. Exiting."
+  exit 1
+fi
 
 if [[ ! -f "$APP_DIR/package.json" ]]; then
   echo "package.json not found in $APP_DIR"
@@ -19,6 +26,7 @@ if [[ ! -f ".env" ]]; then
 fi
 
 echo "[1/7] Installing npm dependencies..."
+rm -rf node_modules .next
 npm ci
 
 echo "[2/7] Generating Prisma client..."
