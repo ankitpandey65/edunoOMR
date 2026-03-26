@@ -7,21 +7,20 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  DATABASE_URL: file:/tmp/eduno-ci.db
+  AUTH_SECRET: ci-secret-not-for-production
 
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      DATABASE_URL: file:./prisma/ci.db
-      AUTH_SECRET: ci-secret-not-for-production
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "24"
           cache: "npm"
@@ -31,6 +30,9 @@ jobs:
 
       - name: Generate Prisma client
         run: npm run db:generate
+
+      - name: Initialize CI database
+        run: npm run db:push
 
       - name: Build app
         run: npm run build
