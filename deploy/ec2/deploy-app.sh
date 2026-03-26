@@ -28,7 +28,7 @@ echo "[3/7] Applying Prisma schema..."
 npm run db:push
 
 echo "[4/7] Checking bootstrap data..."
-USER_COUNT="$(node -e 'const {PrismaClient}=require(\"@prisma/client\"); const p=new PrismaClient(); p.user.count().then((n)=>{console.log(String(n));}).catch(()=>{console.log(\"0\");}).finally(()=>p.$disconnect());')"
+USER_COUNT="$(node -e 'const {PrismaClient}=require("@prisma/client"); const p=new PrismaClient(); p.user.count().then((n)=>{console.log(String(n));}).catch(()=>{console.log("0");}).finally(()=>p.$disconnect());')"
 if [[ "$USER_COUNT" == "0" ]]; then
   echo "No users found. Running seed to create initial admin/school accounts..."
   npm run db:seed
