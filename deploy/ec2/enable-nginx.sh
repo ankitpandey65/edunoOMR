@@ -9,9 +9,15 @@ if [[ ! -f "$CONF_SRC" ]]; then
   exit 1
 fi
 
-sudo cp "$CONF_SRC" /etc/nginx/sites-available/eduno-exam
-sudo ln -sf /etc/nginx/sites-available/eduno-exam /etc/nginx/sites-enabled/eduno-exam
-sudo rm -f /etc/nginx/sites-enabled/default
+if [[ -d /etc/nginx/sites-available ]]; then
+  sudo cp "$CONF_SRC" /etc/nginx/sites-available/eduno-exam
+  sudo ln -sf /etc/nginx/sites-available/eduno-exam /etc/nginx/sites-enabled/eduno-exam
+  sudo rm -f /etc/nginx/sites-enabled/default
+else
+  sudo cp "$CONF_SRC" /etc/nginx/conf.d/eduno-exam.conf
+  sudo rm -f /etc/nginx/conf.d/default.conf
+fi
+
 sudo nginx -t
 sudo systemctl restart nginx
 
