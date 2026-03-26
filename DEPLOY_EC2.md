@@ -50,6 +50,7 @@ Set at least:
 - `DATABASE_URL="file:./prisma/prod.db"`
 - `AUTH_SECRET="<strong-random-secret>"`
 - `OPENAI_API_KEY="<your-key>"` (optional but recommended for AI extraction)
+- `SESSION_COOKIE_SECURE="false"` for HTTP deployments (set `"true"` after HTTPS is enabled)
 
 On first deployment, if no users exist, deploy script auto-seeds default accounts:
 

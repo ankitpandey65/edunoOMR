@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 import type { Role } from "@prisma/client";
@@ -30,6 +30,27 @@ export async function verifyPassword(plain: string, hash: string) {
   return bcrypt.compare(plain, hash);
 }
 
+async function shouldUseSecureCookie() {
+  const override = String(process.env.SESSION_COOKIE_SECURE ?? "")
+    .trim()
+    .toLowerCase();
+  if (override === "true") return true;
+  if (override === "false") return false;
+  if (process.env.NODE_ENV !== "production") return false;
+
+  try {
+    const h = await headers();
+    const proto = String(h.get("x-forwarded-proto") ?? "")
+      .split(",")[0]
+      .trim()
+      .toLowerCase();
+    if (proto) return proto === "https";
+  } catch {
+    // Ignore header lookup errors in non-request contexts.
+  }
+  return false;
+}
+
 export async function signSession(payload: SessionPayload) {
   const token = await new SignJWT({
     role: payload.role,
@@ -43,10 +64,11 @@ export async function signSession(payload: SessionPayload) {
     .sign(secretKey());
 
   const jar = await cookies();
+  const secure = await shouldUseSecureCookie();
   jar.set(COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure,
     path: "/",
     maxAge: TTL,
   });
