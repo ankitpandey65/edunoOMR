@@ -23,7 +23,7 @@ echo "[2/8] Installing core dependencies..."
 if [[ "$PKG" == "apt" ]]; then
   sudo apt-get install -y nginx git curl unzip python3 python3-pip
 else
-  sudo dnf install -y nginx git curl unzip python3 python3-pip
+  sudo dnf install -y nginx git unzip python3 python3-pip
 fi
 
 echo "[3/8] Installing Node.js 20..."
