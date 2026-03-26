@@ -18,26 +18,35 @@ if [[ ! -f ".env" ]]; then
   exit 1
 fi
 
-echo "[1/6] Installing npm dependencies..."
+echo "[1/7] Installing npm dependencies..."
 npm ci
 
-echo "[2/6] Generating Prisma client..."
+echo "[2/7] Generating Prisma client..."
 npm run db:generate
 
-echo "[3/6] Applying Prisma schema..."
+echo "[3/7] Applying Prisma schema..."
 npm run db:push
 
-echo "[4/6] Building Next.js app..."
+echo "[4/7] Checking bootstrap data..."
+USER_COUNT="$(node -e 'const {PrismaClient}=require(\"@prisma/client\"); const p=new PrismaClient(); p.user.count().then((n)=>{console.log(String(n));}).catch(()=>{console.log(\"0\");}).finally(()=>p.$disconnect());')"
+if [[ "$USER_COUNT" == "0" ]]; then
+  echo "No users found. Running seed to create initial admin/school accounts..."
+  npm run db:seed
+else
+  echo "Users already exist ($USER_COUNT). Skipping seed."
+fi
+
+echo "[5/7] Building Next.js app..."
 npm run build
 
-echo "[5/6] Starting/restarting PM2 service..."
+echo "[6/7] Starting/restarting PM2 service..."
 if pm2 describe eduno-exam >/dev/null 2>&1; then
   pm2 restart eduno-exam --update-env
 else
   pm2 start ecosystem.config.cjs --env production
 fi
 
-echo "[6/6] Saving PM2 startup config..."
+echo "[7/7] Saving PM2 startup config..."
 pm2 save
 sudo env PATH="$PATH:/usr/bin" pm2 startup systemd -u "$USER" --hp "$HOME" >/dev/null 2>&1 || true
 

@@ -51,6 +51,11 @@ Set at least:
 - `AUTH_SECRET="<strong-random-secret>"`
 - `OPENAI_API_KEY="<your-key>"` (optional but recommended for AI extraction)
 
+On first deployment, if no users exist, deploy script auto-seeds default accounts:
+
+- Admin: `admin@eduno.local` / `admin123`
+- School: `school@demo.local` / `school123`
+
 ## 5) Build + start app
 
 ```bash
