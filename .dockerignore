@@ -1,0 +1,14 @@
+.git
+.github
+node_modules
+.next
+dist
+dist-desktop
+coverage
+*.log
+.DS_Store
+.env
+public/uploads
+README.md
+DEPLOY_EC2.md
+DESKTOP.md

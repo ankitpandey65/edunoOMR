@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  SCHOOL
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model School {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  address   String?
+  contact   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users         User[]
+  students      Student[]
+  omrBatchJobs  OmrBatchJob[]
+}
+
+model Exam {
+  code      String   @id
+  name      String
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AppSetting {
+  id            String   @id @default("app")
+  examSession   String?
+  omrHeaderNote String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  role         Role
+  schoolId     String?
+  school       School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Student {
+  id         String   @id @default(cuid())
+  schoolId   String
+  school     School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  rollNo     String
+  name       String
+  className  String
+  section    String   @default("")
+  fatherName String?
+  dob        String?
+  mobile     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  enrollments      Enrollment[]
+  pendingChanges   PendingStudentChange[]
+  scanResults      ScanResult[]
+  batchPageResults OmrBatchPageResult[]
+
+  @@unique([schoolId, rollNo])
+}
+
+model OmrBatchJob {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  fileName       String
+  filePath       String
+  uploadedByRole Role
+  schoolId       String?
+  school         School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  totalPages     Int      @default(0)
+  okCount        Int      @default(0)
+  errCount       Int      @default(0)
+  status         String   @default("completed")
+  pages          OmrBatchPageResult[]
+}
+
+model OmrBatchPageResult {
+  id                String    @id @default(cuid())
+  jobId             String
+  job               OmrBatchJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  pageIndex         Int
+  studentId         String?
+  student           Student?  @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  examCode          String?
+  paperSet          String?
+  attemptedQuestions Int?
+  totalQuestions    Int?
+  correctAnswers    Int?
+  scanSource        String?
+  score             Float?
+  maxScore          Float?
+  detectedAnswers   String?
+  qrPayload         String?
+  imagePath         String?
+  error             String?
+  createdAt         DateTime  @default(now())
+
+  @@index([jobId])
+  @@index([studentId])
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  examCode  String
+  createdAt DateTime @default(now())
+
+  scanResults ScanResult[]
+
+  @@unique([studentId, examCode])
+}
+
+model PendingStudentChange {
+  id          String         @id @default(cuid())
+  studentId   String
+  student     Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  requestedBy String
+  status      ApprovalStatus @default(PENDING)
+  payload     String
+  createdAt   DateTime       @default(now())
+  reviewedAt  DateTime?
+  reviewedBy  String?
+}
+
+model AnswerKey {
+  id        String   @id @default(cuid())
+  examCode  String
+  className String
+  setCode   String   @default("A")
+  answers   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([examCode, className, setCode])
+}
+
+model ScanResult {
+  id             String   @id @default(cuid())
+  studentId      String
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  enrollmentId   String?
+  enrollment     Enrollment? @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+  examCode       String
+  paperSet       String?
+  attemptedQuestions Int?
+  totalQuestions Int?
+  correctAnswers Int?
+  scanSource     String?   @default("single")
+  imagePath      String?
+  detectedAnswers String?
+  score          Float?
+  maxScore         Float?
+  processedAt    DateTime @default(now())
+  notes          String?
+
+  @@index([studentId, examCode])
+}

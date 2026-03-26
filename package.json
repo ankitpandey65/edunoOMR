@@ -1,0 +1,128 @@
+{
+  "name": "eduno-exam",
+  "version": "0.1.0",
+  "description": "Eduno Exam local desktop software",
+  "author": "Eduno",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "desktop:dev": "concurrently -k \"npm:dev\" \"wait-on http://127.0.0.1:3000 && electron electron/main.cjs\"",
+    "desktop:pack": "npm run build && electron-builder --dir",
+    "desktop:dist": "npm run build && electron-builder",
+    "desktop:dist:mac": "npm run build && electron-builder --mac",
+    "desktop:dist:win": "npm run build && electron-builder --win",
+    "desktop:dist:win:x64": "npm run build && electron-builder --win --x64",
+    "lint": "eslint",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f eduno-app",
+    "docker:restart": "docker compose restart eduno-app",
+    "docker:image:up": "docker compose -f docker-compose.image.yml up -d",
+    "docker:image:down": "docker compose -f docker-compose.image.yml down",
+    "server:build": "npm ci && npm run db:generate && npm run build",
+    "server:start": "next start -p 3000",
+    "pm2:start": "pm2 start ecosystem.config.cjs --env production",
+    "pm2:restart": "pm2 restart eduno-exam",
+    "pm2:logs": "pm2 logs eduno-exam",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.97",
+    "@napi-rs/canvas-darwin-arm64": "^0.1.97",
+    "@prisma/client": "^6.5.0",
+    "bcryptjs": "^3.0.2",
+    "bwip-js": "^4.8.0",
+    "canvas": "^3.2.2",
+    "jose": "^6.0.10",
+    "jsqr": "^1.4.0",
+    "next": "^15.2.4",
+    "openai": "^6.33.0",
+    "pdf-lib": "^1.17.1",
+    "pdf-to-img": "^5.0.0",
+    "pdfjs-dist": "^5.5.207",
+    "qrcode": "^1.5.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.34.1",
+    "zod": "^3.24.2"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "electron": "^37.4.0",
+    "electron-builder": "^26.0.12",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "^15.2.4",
+    "prisma": "^6.5.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.19.3",
+    "typescript": "^5",
+    "wait-on": "^8.0.5"
+  },
+  "main": "electron/main.cjs",
+  "build": {
+    "appId": "com.eduno.exam",
+    "productName": "Eduno Exam",
+    "asar": false,
+    "publish": "never",
+    "directories": {
+      "output": "dist-desktop"
+    },
+    "artifactName": "Eduno-Exam-Setup-${version}-${arch}.${ext}",
+    "files": [
+      "electron/**/*",
+      ".next/**/*",
+      "public/**/*",
+      "prisma/**/*",
+      "package.json",
+      "next.config.ts",
+      "tsconfig.json",
+      "node_modules/**/*",
+      "!.next/cache/**/*",
+      "!node_modules/.cache/**/*",
+      "!**/*.map"
+    ],
+    "asarUnpack": [
+      "node_modules/.prisma/**/*",
+      "node_modules/@prisma/**/*"
+    ],
+    "mac": {
+      "icon": "assets/icons/icon.icns",
+      "target": ["dmg"],
+      "category": "public.app-category.education"
+    },
+    "win": {
+      "artifactName": "Eduno-Exam-Setup-${version}-${arch}.${ext}",
+      "icon": "assets/icons/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Eduno Exam"
+    }
+  }
+}
