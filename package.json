@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.97",
-    "@napi-rs/canvas-darwin-arm64": "^0.1.97",
     "@prisma/client": "^6.5.0",
     "bcryptjs": "^3.0.2",
     "bwip-js": "^4.8.0",
@@ -50,6 +49,9 @@
     "react-dom": "^19.0.0",
     "sharp": "^0.34.1",
     "zod": "^3.24.2"
+  },
+  "optionalDependencies": {
+    "@napi-rs/canvas-darwin-arm64": "^0.1.97"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

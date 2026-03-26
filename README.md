@@ -108,3 +108,5 @@ Stop:
 ```bash
 npm run docker:image:down
 ```
+
+If publish workflow fails, first switch to stable single-arch image publish (`linux/amd64`) and rerun.
