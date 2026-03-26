@@ -37,7 +37,7 @@ jobs:
             git reset --hard origin/main || git reset --hard origin/master
 
             chmod +x deploy/ec2/setup-server.sh deploy/ec2/deploy-app.sh deploy/ec2/enable-nginx.sh
-            ./deploy/ec2/setup-server.sh
+            bash deploy/ec2/setup-server.sh
 
             if [ -n "${{ secrets.EC2_ENV_FILE }}" ]; then
               cat > .env <<'EOF'
@@ -49,5 +49,5 @@ jobs:
               cp .env.example .env
             fi
 
-            ./deploy/ec2/deploy-app.sh
-            ./deploy/ec2/enable-nginx.sh
+            bash deploy/ec2/deploy-app.sh
+            bash deploy/ec2/enable-nginx.sh
