@@ -44,9 +44,7 @@ jobs:
             bash deploy/ec2/setup-server.sh
 
             if [ -n "${{ secrets.EC2_ENV_FILE }}" ]; then
-              cat > .env <<'EOF'
-            ${{ secrets.EC2_ENV_FILE }}
-            EOF
+              printf '%s\n' '${{ secrets.EC2_ENV_FILE }}' > .env
             fi
 
             if [ ! -f .env ]; then
