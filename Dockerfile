@@ -21,12 +21,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python3 -m pip install --no-cache-dir --break-system-packages pymupdf pillow
 
 COPY package.json package-lock.json ./
+COPY prisma/schema.prisma ./prisma/schema.prisma
 RUN npm ci
 
 COPY . .
 RUN chmod +x docker/start.sh
 
-RUN npm run db:generate && npm run build
+RUN npm run db:generate && npm run db:push && npm run build
 
 EXPOSE 3000
 
