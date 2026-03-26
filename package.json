@@ -1,19 +1,13 @@
 {
   "name": "eduno-exam",
   "version": "0.1.0",
-  "description": "Eduno Exam local desktop software",
+  "description": "Eduno Exam web application",
   "author": "Eduno",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "desktop:dev": "concurrently -k \"npm:dev\" \"wait-on http://127.0.0.1:3000 && electron electron/main.cjs\"",
-    "desktop:pack": "npm run build && electron-builder --dir",
-    "desktop:dist": "npm run build && electron-builder",
-    "desktop:dist:mac": "npm run build && electron-builder --mac",
-    "desktop:dist:win": "npm run build && electron-builder --win",
-    "desktop:dist:win:x64": "npm run build && electron-builder --win --x64",
     "lint": "eslint",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
@@ -54,9 +48,6 @@
     "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1",
-    "electron": "^37.4.0",
-    "electron-builder": "^26.0.12",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
@@ -69,59 +60,6 @@
     "prisma": "^6.5.0",
     "tailwindcss": "^4",
     "tsx": "^4.19.3",
-    "typescript": "^5",
-    "wait-on": "^8.0.5"
-  },
-  "main": "electron/main.cjs",
-  "build": {
-    "appId": "com.eduno.exam",
-    "productName": "Eduno Exam",
-    "asar": false,
-    "publish": "never",
-    "directories": {
-      "output": "dist-desktop"
-    },
-    "artifactName": "Eduno-Exam-Setup-${version}-${arch}.${ext}",
-    "files": [
-      "electron/**/*",
-      ".next/**/*",
-      "public/**/*",
-      "prisma/**/*",
-      "package.json",
-      "next.config.ts",
-      "tsconfig.json",
-      "node_modules/**/*",
-      "!.next/cache/**/*",
-      "!node_modules/.cache/**/*",
-      "!**/*.map"
-    ],
-    "asarUnpack": [
-      "node_modules/.prisma/**/*",
-      "node_modules/@prisma/**/*"
-    ],
-    "mac": {
-      "icon": "assets/icons/icon.icns",
-      "target": ["dmg"],
-      "category": "public.app-category.education"
-    },
-    "win": {
-      "artifactName": "Eduno-Exam-Setup-${version}-${arch}.${ext}",
-      "icon": "assets/icons/icon.ico",
-      "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        }
-      ]
-    },
-    "nsis": {
-      "oneClick": true,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": false,
-      "runAfterFinish": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "Eduno Exam"
-    }
+    "typescript": "^5"
   }
 }
