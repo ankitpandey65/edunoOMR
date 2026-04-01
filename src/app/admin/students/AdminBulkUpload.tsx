@@ -28,6 +28,12 @@ export function AdminBulkUpload({ schoolId }: { schoolId: string }) {
       {state?.ok ? (
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100">
           Imported <strong>{state.created}</strong> students.
+          {typeof state.skipped === "number" ? (
+            <>
+              {" "}
+              Skipped duplicates: <strong>{state.skipped}</strong>.
+            </>
+          ) : null}
           {state.errors?.length ? (
             <ul className="mt-2 list-inside list-disc text-xs text-amber-200">
               {state.errors.slice(0, 12).map((e) => (

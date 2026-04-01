@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { logoutAction } from "@/actions/auth";
+import { prisma } from "@/lib/prisma";
 
 const links = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/schools", label: "Schools" },
   { href: "/admin/students", label: "Students" },
-  { href: "/admin/users", label: "Users & access" },
   { href: "/admin/pending", label: "Approvals" },
   { href: "/admin/omr", label: "OMR PDF" },
   { href: "/admin/keys", label: "Answer keys" },
@@ -13,7 +13,10 @@ const links = [
   { href: "/admin/scores", label: "Final scores" },
 ];
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export async function AdminShell({ children }: { children: React.ReactNode }) {
+  const pendingCount = await prisma.pendingStudentChange.count({
+    where: { status: "PENDING" },
+  });
   return (
     <div className="min-h-screen">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col border-r border-white/10 bg-[#070d18]/95 p-4 backdrop-blur md:flex">
@@ -30,9 +33,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <Link
               key={l.href}
               href={l.href}
-              className="rounded-lg px-3 py-2 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
+              className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
             >
-              {l.label}
+              <span>{l.label}</span>
+              {l.href === "/admin/pending" && pendingCount > 0 ? (
+                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[11px] font-semibold text-amber-200">
+                  {pendingCount}
+                </span>
+              ) : null}
             </Link>
           ))}
         </nav>

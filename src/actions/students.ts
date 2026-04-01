@@ -41,6 +41,13 @@ export async function adminUpsertStudentAction(formData: FormData) {
   }
 
   if (id) {
+    const conflicting = await prisma.student.findFirst({
+      where: { schoolId, rollNo, NOT: { id } },
+      select: { id: true },
+    });
+    if (conflicting) {
+      return { error: "A student with this roll number already exists in this school." };
+    }
     await prisma.$transaction(async (tx) => {
       await tx.student.update({
         where: { id },
@@ -52,6 +59,13 @@ export async function adminUpsertStudentAction(formData: FormData) {
       });
     });
   } else {
+    const existing = await prisma.student.findUnique({
+      where: { schoolId_rollNo: { schoolId, rollNo } },
+      select: { id: true },
+    });
+    if (existing) {
+      return { error: "Student already exists with this roll number in the selected school." };
+    }
     const student = await prisma.student.create({
       data: {
         schoolId,
@@ -89,6 +103,13 @@ export async function schoolCreateStudentAction(formData: FormData) {
 
   if (!rollNo || !name || !className) {
     return { error: "Roll number, name, and class are required." };
+  }
+  const existing = await prisma.student.findUnique({
+    where: { schoolId_rollNo: { schoolId, rollNo } },
+    select: { id: true },
+  });
+  if (existing) {
+    return { error: "Student already exists with this roll number. Duplicate not allowed." };
   }
 
   await prisma.student.create({
@@ -161,6 +182,7 @@ export async function schoolRequestStudentChangeAction(formData: FormData) {
 export type BulkImportState = {
   ok?: boolean;
   created?: number;
+  skipped?: number;
   errors?: string[];
   error?: string;
 } | null;
@@ -186,11 +208,18 @@ async function runBulkImportFromCsvText(schoolId: string, text: string): Promise
   }
 
   let created = 0;
+  let skipped = 0;
   const errors: string[] = [];
+  const existing = await prisma.student.findMany({
+    where: { schoolId },
+    select: { rollNo: true },
+  });
+  const knownRolls = new Set(existing.map((r) => r.rollNo.trim()));
+  const seenInFile = new Set<string>();
 
   for (let r = 1; r < lines.length; r++) {
     const cols = parseCsvLine(lines[r]);
-    const rollNo = cols[iRoll] ?? "";
+    const rollNo = String(cols[iRoll] ?? "").trim();
     const name = cols[iName] ?? "";
     const className = cols[iClass] ?? "";
     const section = iSec >= 0 ? (cols[iSec] ?? "") : "";
@@ -202,6 +231,10 @@ async function runBulkImportFromCsvText(schoolId: string, text: string): Promise
 
     if (!rollNo || !name || !className) {
       errors.push(`Row ${r + 1}: missing roll, name, or class`);
+      continue;
+    }
+    if (knownRolls.has(rollNo) || seenInFile.has(rollNo)) {
+      skipped++;
       continue;
     }
 
@@ -222,12 +255,14 @@ async function runBulkImportFromCsvText(schoolId: string, text: string): Promise
         },
       });
       created++;
+      knownRolls.add(rollNo);
+      seenInFile.add(rollNo);
     } catch {
       errors.push(`Row ${r + 1}: could not import (duplicate roll?)`);
     }
   }
 
-  return { ok: true, created, errors };
+  return { ok: true, created, skipped, errors };
 }
 
 export async function bulkImportStudentsAction(
