@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 import bwipjs from "bwip-js/node";
 import { prisma } from "./prisma";
 import { examNameByCode, examNameMap } from "./exam-store";
+import { getAppSettings } from "./app-settings";
 import {
   OMR_GRID,
   OMR_PAGE,
@@ -322,6 +323,8 @@ async function drawOmrPage(
     fatherName: string;
     rollNo: string;
     sheetId: string;
+    sessionLabel: string;
+    headerNote: string;
     qrPayload: Record<string, string>;
   }
 ) {
@@ -364,6 +367,13 @@ async function drawOmrPage(
   });
   page.drawText("OMR", {
     x: 28,
+    y: height - 52,
+    size: 8,
+    font,
+    color: rgb(0.82, 0.9, 0.98),
+  });
+  page.drawText(`Session: ${opts.sessionLabel || "—"}`, {
+    x: 74,
     y: height - 52,
     size: 8,
     font,
@@ -439,6 +449,16 @@ async function drawOmrPage(
     maxWidth: 180,
   });
   page.drawText(opts.examCode, { x: 236, y: height - 128, size: 7.5, font, color: rgb(0.35, 0.38, 0.42) });
+  if (opts.headerNote) {
+    page.drawText(opts.headerNote, {
+      x: 236,
+      y: height - 140,
+      size: 7,
+      font,
+      color: rgb(0.35, 0.38, 0.42),
+      maxWidth: 180,
+    });
+  }
 
   page.drawText("Candidate", {
     x: 44,
@@ -533,6 +553,7 @@ export async function generateOmrPdfForSchool(schoolId: string): Promise<Uint8Ar
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const settings = await getAppSettings();
 
   const enrollmentsFlat: {
     examCode: string;
@@ -577,6 +598,8 @@ export async function generateOmrPdfForSchool(schoolId: string): Promise<Uint8Ar
   sy -= 16;
   summaryPage.drawText(`School Code: ${school.code}`, { x: 40, y: sy, size: 10, font });
   sy -= 18;
+  summaryPage.drawText(`Session: ${settings.examSession || "—"}`, { x: 40, y: sy, size: 9, font });
+  sy -= 16;
   summaryPage.drawText(
     `Total Students: ${distinctStudents.size}   Total Exams: ${distinctExams.size}   Total OMR Sheets: ${enrollmentsFlat.length}`,
     { x: 40, y: sy, size: 9, font }
@@ -628,6 +651,8 @@ export async function generateOmrPdfForSchool(schoolId: string): Promise<Uint8Ar
     hy -= 14;
     header.drawText(`School: ${school.name}`, { x: 40, y: hy, size: 9, font });
     hy -= 22;
+    header.drawText(`Session: ${settings.examSession || "—"}`, { x: 40, y: hy, size: 9, font });
+    hy -= 16;
     header.drawText(
       `Total Classes: ${classMap.size}   Total Students: ${rows.length}   Total OMR Sheets: ${rows.length}`,
       { x: 40, y: hy, size: 9, font }
@@ -662,6 +687,8 @@ export async function generateOmrPdfForSchool(schoolId: string): Promise<Uint8Ar
         fatherName: s.fatherName ?? "",
         rollNo: s.rollNo,
         sheetId,
+        sessionLabel: settings.examSession || "",
+        headerNote: settings.omrHeaderNote || "",
         qrPayload: {
           v: "2",
           sh: sheetId,
@@ -689,6 +716,7 @@ export async function generateSingleOmrPdf(studentId: string, examCode: string):
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const settings = await getAppSettings();
   const sheetId = newSheetId();
   const examTitle = await examNameByCode(examCode.toUpperCase());
 
@@ -703,6 +731,8 @@ export async function generateSingleOmrPdf(studentId: string, examCode: string):
     fatherName: student.fatherName ?? "",
     rollNo: student.rollNo,
     sheetId,
+    sessionLabel: settings.examSession || "",
+    headerNote: settings.omrHeaderNote || "",
     qrPayload: {
       v: "2",
       sh: sheetId,

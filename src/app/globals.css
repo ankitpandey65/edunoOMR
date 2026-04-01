@@ -18,6 +18,37 @@ html {
   color-scheme: dark;
 }
 
+html.theme-light {
+  color-scheme: light;
+}
+
+html.theme-light body {
+  --bg: #f3f6fb;
+  --surface: #ffffff;
+  --surface2: #eef3fb;
+  --border: rgba(15, 23, 42, 0.12);
+  --text: #0f172a;
+  --muted: #475569;
+  background: radial-gradient(1200px 600px at 10% -10%, rgba(14, 165, 233, 0.12), transparent),
+    radial-gradient(800px 400px at 90% 0%, rgba(79, 70, 229, 0.1), transparent),
+    var(--bg);
+  color: var(--text);
+}
+
+html.theme-light .text-white {
+  color: #0f172a !important;
+}
+
+html.theme-light .text-slate-400,
+html.theme-light .text-slate-500 {
+  color: #475569 !important;
+}
+
+html.theme-light .card {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
 body {
   background: radial-gradient(1200px 600px at 10% -10%, rgba(56, 189, 248, 0.15), transparent),
     radial-gradient(800px 400px at 90% 0%, rgba(129, 140, 248, 0.12), transparent),

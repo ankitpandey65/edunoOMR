@@ -46,6 +46,7 @@ model AppSetting {
   id            String   @id @default("app")
   examSession   String?
   omrHeaderNote String?
+  theme         String   @default("dark")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -61,6 +62,25 @@ model User {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  accessLogs   AccessLog[]
+}
+
+model AccessLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email     String
+  role      Role?
+  action    String
+  success   Boolean  @default(true)
+  details   String?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([email])
+  @@index([userId])
 }
 
 model Student {

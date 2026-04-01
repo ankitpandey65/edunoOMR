@@ -10,16 +10,19 @@ export async function saveAppSettingsAction(formData: FormData) {
   if (!appSettingModel) return { error: "Server model not ready. Restart app and run Prisma generate." };
   const examSession = String(formData.get("examSession") ?? "").trim();
   const omrHeaderNote = String(formData.get("omrHeaderNote") ?? "").trim();
+  const themeRaw = String(formData.get("theme") ?? "dark").trim().toLowerCase();
+  const theme = themeRaw === "light" ? "light" : "dark";
 
   await appSettingModel.upsert({
     where: { id: "app" },
-    create: { id: "app", examSession, omrHeaderNote },
-    update: { examSession, omrHeaderNote },
+    create: { id: "app", examSession, omrHeaderNote, theme },
+    update: { examSession, omrHeaderNote, theme },
   });
 
   revalidatePath("/admin/settings");
   revalidatePath("/admin/omr");
   revalidatePath("/school/omr");
+  revalidatePath("/");
   return { ok: true as const };
 }
 

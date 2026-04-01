@@ -119,27 +119,104 @@ export async function requireSchool() {
 }
 
 export async function loginWithEmailPassword(email: string, password: string) {
+  const emailNorm = email.toLowerCase().trim();
+  const h = await headers();
+  const ip = String(h.get("x-forwarded-for") ?? "")
+    .split(",")[0]
+    .trim();
+  const userAgent = String(h.get("user-agent") ?? "").trim();
+  const accessLogModel = (prisma as unknown as { accessLog?: any }).accessLog;
+
+  async function writeAccessLog(data: {
+    userId?: string | null;
+    email: string;
+    role?: Role | null;
+    action: string;
+    success: boolean;
+    details?: string;
+  }) {
+    if (!accessLogModel) return;
+    try {
+      await accessLogModel.create({
+        data: {
+          userId: data.userId ?? null,
+          email: data.email,
+          role: data.role ?? null,
+          action: data.action,
+          success: data.success,
+          details: data.details ?? null,
+          ip: ip || null,
+          userAgent: userAgent || null,
+        },
+      });
+    } catch {
+      // Access logging must never block login flow.
+    }
+  }
+
   const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
+    where: { email: emailNorm },
     include: { school: true },
   });
-  if (!user) return { error: "Invalid email or password" as const };
+  if (!user) {
+    await writeAccessLog({
+      email: emailNorm,
+      action: "LOGIN",
+      success: false,
+      details: "Unknown email",
+    });
+    return { error: "Invalid email or password" as const };
+  }
   if (!user.isActive) {
+    await writeAccessLog({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      action: "LOGIN",
+      success: false,
+      details: "User disabled",
+    });
     return { error: "This account has been disabled. Contact your administrator." as const };
   }
   if (user.role === "SCHOOL" && user.schoolId) {
     const school = user.school;
     if (!school?.isActive) {
+      await writeAccessLog({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        action: "LOGIN",
+        success: false,
+        details: "School disabled",
+      });
       return { error: "School access is suspended. Contact the platform administrator." as const };
     }
   }
   const ok = await verifyPassword(password, user.passwordHash);
-  if (!ok) return { error: "Invalid email or password" as const };
+  if (!ok) {
+    await writeAccessLog({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      action: "LOGIN",
+      success: false,
+      details: "Invalid password",
+    });
+    return { error: "Invalid email or password" as const };
+  }
   await signSession({
     sub: user.id,
     role: user.role,
     schoolId: user.schoolId,
     email: user.email,
+  });
+  await writeAccessLog({
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    action: "LOGIN",
+    success: true,
+    details: "Login success",
   });
   return { ok: true as const, role: user.role };
 }

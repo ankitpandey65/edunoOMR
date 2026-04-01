@@ -25,8 +25,8 @@ async function main() {
 
   await prisma.appSetting.upsert({
     where: { id: "app" },
-    create: { id: "app", examSession: "2026-27" },
-    update: {},
+    create: { id: "app", examSession: "2026-27", theme: "dark" },
+    update: { theme: "dark" },
   });
 
   const adminHash = await bcrypt.hash("admin123", 12);

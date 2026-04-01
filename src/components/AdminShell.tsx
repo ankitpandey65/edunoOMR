@@ -5,9 +5,9 @@ const links = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/schools", label: "Schools" },
   { href: "/admin/students", label: "Students" },
+  { href: "/admin/users", label: "Users & access" },
   { href: "/admin/pending", label: "Approvals" },
   { href: "/admin/omr", label: "OMR PDF" },
-  { href: "/admin/settings", label: "Settings" },
   { href: "/admin/keys", label: "Answer keys" },
   { href: "/admin/scans", label: "Scan & score" },
   { href: "/admin/scores", label: "Final scores" },
@@ -36,6 +36,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
+        <Link
+          href="/admin/settings"
+          className="mt-3 inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+            <path d="m19.4 15 1.2 2.1-2 2-2.1-1.2a8.2 8.2 0 0 1-1.8.7L14.3 21h-4.6l-.4-2.4a8.2 8.2 0 0 1-1.8-.7l-2.1 1.2-2-2L4.6 15a8.2 8.2 0 0 1-.7-1.8L1.5 12l2.4-.4a8.2 8.2 0 0 1 .7-1.8L3.4 7.7l2-2 2.1 1.2a8.2 8.2 0 0 1 1.8-.7L9.7 3h4.6l.4 2.4a8.2 8.2 0 0 1 1.8.7l2.1-1.2 2 2-1.2 2.1c.3.6.5 1.2.7 1.8l2.4.4-2.4.4a8.2 8.2 0 0 1-.7 1.8Z" />
+          </svg>
+          Settings
+        </Link>
         <form action={logoutAction}>
           <button
             type="submit"
