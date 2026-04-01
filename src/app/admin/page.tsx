@@ -1,10 +1,15 @@
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminHome() {
-  const [schools, students, pending] = await Promise.all([
+  const [schoolsTotal, schoolsActive, studentsTotal, pending, enrollments, scans] = await Promise.all([
     prisma.school.count(),
+    prisma.school.count({ where: { isActive: true } }),
     prisma.student.count(),
     prisma.pendingStudentChange.count({ where: { status: "PENDING" } }),
+    prisma.enrollment.count(),
+    prisma.scanResult.count(),
   ]);
 
   return (
@@ -18,15 +23,18 @@ export default async function AdminHome() {
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="card p-5">
           <div className="text-xs uppercase tracking-wide text-slate-500">Schools</div>
-          <div className="mt-2 text-3xl font-semibold text-white">{schools}</div>
+          <div className="mt-2 text-3xl font-semibold text-white">{schoolsTotal}</div>
+          <div className="mt-1 text-xs text-slate-500">Active: {schoolsActive}</div>
         </div>
         <div className="card p-5">
           <div className="text-xs uppercase tracking-wide text-slate-500">Students</div>
-          <div className="mt-2 text-3xl font-semibold text-white">{students}</div>
+          <div className="mt-2 text-3xl font-semibold text-white">{studentsTotal}</div>
+          <div className="mt-1 text-xs text-slate-500">OMR sheets: {enrollments}</div>
         </div>
         <div className="card p-5">
           <div className="text-xs uppercase tracking-wide text-slate-500">Pending approvals</div>
           <div className="mt-2 text-3xl font-semibold text-amber-300">{pending}</div>
+          <div className="mt-1 text-xs text-slate-500">Scans processed: {scans}</div>
         </div>
       </div>
     </div>

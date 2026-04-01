@@ -1,7 +1,12 @@
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminOmrPage() {
-  const schools = await prisma.school.findMany({ orderBy: { name: "asc" } });
+  const schools = await prisma.school.findMany({
+    orderBy: { name: "asc" },
+    include: { _count: { select: { students: true } } },
+  });
 
   return (
     <div className="space-y-8">
@@ -22,19 +27,28 @@ export default async function AdminOmrPage() {
               <div>
                 <div className="font-medium text-white">{s.name}</div>
                 <div className="font-mono text-xs text-sky-300">{s.code}</div>
+                <div className="text-xs text-slate-500">Students: {s._count.students}</div>
               </div>
-              <a
-                href={`/api/omr/school?schoolId=${encodeURIComponent(s.id)}`}
-                className="btn btn-primary text-sm"
-              >
-                Download full OMR PDF
-              </a>
-              <a
-                href={`/api/attendance/school?schoolId=${encodeURIComponent(s.id)}`}
-                className="btn btn-ghost text-sm"
-              >
-                Download attendance PDF
-              </a>
+              <div className="flex flex-wrap gap-2">
+                <a
+                  href={`/api/omr/school?schoolId=${encodeURIComponent(s.id)}`}
+                  className="btn btn-primary text-sm"
+                >
+                  Download full OMR PDF
+                </a>
+                <a
+                  href={`/api/attendance/school?schoolId=${encodeURIComponent(s.id)}`}
+                  className="btn btn-ghost text-sm"
+                >
+                  Download attendance PDF
+                </a>
+                <a
+                  href={`/api/scores/export?schoolId=${encodeURIComponent(s.id)}`}
+                  className="btn btn-ghost text-sm"
+                >
+                  Download scores CSV
+                </a>
+              </div>
             </div>
           ))}
         </div>

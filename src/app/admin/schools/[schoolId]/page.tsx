@@ -3,12 +3,15 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSchoolExamClassBreakdown } from "@/lib/school-exam-stats";
 import {
+  deleteSchoolAction,
   updateSchoolAction,
   setSchoolSuspendedAction,
   setSchoolPortalUsersActiveAction,
 } from "@/actions/schools";
 
 type PageProps = { params: Promise<{ schoolId: string }> };
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminSchoolDetailPage({ params }: PageProps) {
   const { schoolId } = await params;
@@ -90,6 +93,15 @@ export default async function AdminSchoolDetailPage({ params }: PageProps) {
               </form>
             )
           )}
+          <form action={deleteSchoolAction}>
+            <input type="hidden" name="id" value={school.id} />
+            <button
+              type="submit"
+              className="rounded-xl border border-red-500/40 px-4 py-2 text-sm text-red-200 hover:bg-red-500/10"
+            >
+              Delete school
+            </button>
+          </form>
         </div>
       </div>
 
@@ -143,6 +155,24 @@ export default async function AdminSchoolDetailPage({ params }: PageProps) {
       </div>
 
       <div className="flex flex-wrap gap-3">
+        <a
+          href={`/api/omr/school?schoolId=${encodeURIComponent(school.id)}`}
+          className="btn btn-ghost text-sm"
+        >
+          Download OMR PDF
+        </a>
+        <a
+          href={`/api/attendance/school?schoolId=${encodeURIComponent(school.id)}`}
+          className="btn btn-ghost text-sm"
+        >
+          Download attendance PDF
+        </a>
+        <a
+          href={`/api/scores/export?schoolId=${encodeURIComponent(school.id)}`}
+          className="btn btn-ghost text-sm"
+        >
+          Download scores CSV
+        </a>
         <Link
           href={`/admin/pending?schoolId=${encodeURIComponent(school.id)}`}
           className="btn btn-ghost text-sm"

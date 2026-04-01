@@ -3,6 +3,8 @@ import { adminUpsertStudentAction } from "@/actions/students";
 import { listActiveExams } from "@/lib/exam-store";
 import { AdminBulkUpload } from "./AdminBulkUpload";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminStudentsPage({
   searchParams,
 }: {

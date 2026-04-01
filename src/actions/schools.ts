@@ -100,3 +100,20 @@ export async function setSchoolPortalUsersActiveAction(formData: FormData) {
   revalidatePath(`/admin/schools/${schoolId}`);
   return { ok: true as const };
 }
+
+export async function deleteSchoolAction(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) return { error: "Missing school." };
+
+  await prisma.school.delete({
+    where: { id },
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/schools");
+  revalidatePath("/admin/students");
+  revalidatePath("/admin/omr");
+  revalidatePath("/admin/scores");
+  return { ok: true as const };
+}

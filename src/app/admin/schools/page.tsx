@@ -2,10 +2,13 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import {
   createSchoolAction,
+  deleteSchoolAction,
   setSchoolPortalUsersActiveAction,
   setSchoolSuspendedAction,
 } from "@/actions/schools";
 import { SchoolsSearch } from "./SchoolsSearch";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminSchoolsPage({
   searchParams,
@@ -173,6 +176,30 @@ export default async function AdminSchoolsPage({
                         >
                           Edit
                         </Link>
+                        <Link
+                          href={`/admin/students?school=${encodeURIComponent(s.id)}`}
+                          className="btn btn-ghost py-1.5 text-xs"
+                        >
+                          Students
+                        </Link>
+                        <a
+                          href={`/api/omr/school?schoolId=${encodeURIComponent(s.id)}`}
+                          className="btn btn-ghost py-1.5 text-xs"
+                        >
+                          OMR PDF
+                        </a>
+                        <a
+                          href={`/api/attendance/school?schoolId=${encodeURIComponent(s.id)}`}
+                          className="btn btn-ghost py-1.5 text-xs"
+                        >
+                          Attendance
+                        </a>
+                        <a
+                          href={`/api/scores/export?schoolId=${encodeURIComponent(s.id)}`}
+                          className="btn btn-ghost py-1.5 text-xs"
+                        >
+                          Scores CSV
+                        </a>
                         {s.isActive ? (
                           <form action={setSchoolSuspendedAction} className="inline">
                             <input type="hidden" name="id" value={s.id} />
@@ -223,6 +250,16 @@ export default async function AdminSchoolsPage({
                             </form>
                           )
                         )}
+                        <form action={deleteSchoolAction} className="inline">
+                          <input type="hidden" name="id" value={s.id} />
+                          <button
+                            type="submit"
+                            className="rounded-lg border border-red-500/40 px-2 py-1 text-xs text-red-300 hover:bg-red-500/10"
+                            title="Delete school and all related student records"
+                          >
+                            Delete school
+                          </button>
+                        </form>
                       </div>
                     </td>
                   </tr>
