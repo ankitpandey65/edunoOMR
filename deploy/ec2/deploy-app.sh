@@ -7,9 +7,24 @@ LOCK_FILE="${LOCK_FILE:-/tmp/eduno-deploy.lock}"
 
 exec 9>"$LOCK_FILE"
 if ! flock -n 9; then
-  echo "Another deployment is already running. Exiting."
-  exit 1
+  echo "Another deployment is already running. Waiting for lock..."
+  flock 9
 fi
+
+retry() {
+  local attempts="$1"
+  shift
+  local n=1
+  until "$@"; do
+    if (( n >= attempts )); then
+      echo "Command failed after $attempts attempts: $*"
+      return 1
+    fi
+    echo "Command failed. Retry $n/$attempts: $*"
+    n=$((n + 1))
+    sleep 3
+  done
+}
 
 if [[ ! -f "$APP_DIR/package.json" ]]; then
   echo "package.json not found in $APP_DIR"
@@ -27,7 +42,7 @@ fi
 
 echo "[1/7] Installing npm dependencies..."
 rm -rf node_modules .next
-npm ci
+retry 2 npm ci
 
 echo "[2/7] Generating Prisma client..."
 npm run db:generate
@@ -45,7 +60,7 @@ else
 fi
 
 echo "[5/7] Building Next.js app..."
-npm run build
+retry 2 npm run build
 
 echo "[6/7] Starting/restarting PM2 service..."
 if pm2 describe eduno-exam >/dev/null 2>&1; then

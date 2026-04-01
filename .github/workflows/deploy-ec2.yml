@@ -25,7 +25,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script_stop: true
           script: |
-            set -euo pipefail
+            set -euxo pipefail
             APP_DIR=/var/www/eduno-exam
             REPO_URL=https://github.com/ankitpandey65/edunoOMR.git
 
@@ -53,3 +53,5 @@ jobs:
 
             bash deploy/ec2/deploy-app.sh
             bash deploy/ec2/enable-nginx.sh
+            pm2 status
+            curl -fsS -I http://127.0.0.1:3000 | head -n 5
