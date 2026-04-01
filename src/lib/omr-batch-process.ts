@@ -14,6 +14,8 @@ export type BatchProcessResult = {
   openAiUsed: boolean;
 };
 
+export type BatchDuplicateMode = "ask" | "replace_latest" | "keep_old" | "keep_both";
+
 function computeAttempted(answers: string[], ambiguous: boolean[]) {
   return answers.filter(Boolean).length + ambiguous.filter(Boolean).length;
 }
@@ -23,6 +25,7 @@ export async function processOmrPdfUpload(opts: {
   fileName: string;
   uploadedByRole: Role;
   schoolIdFilter: string | null;
+  duplicateMode: BatchDuplicateMode;
 }): Promise<BatchProcessResult> {
   const useOpenAi = hasOpenAiForOmr();
   const renderer = await createPdfPageRenderer(opts.pdfBuffer);
@@ -172,25 +175,65 @@ export async function processOmrPdfUpload(opts: {
             },
           });
 
-          await prisma.scanResult.create({
-            data: {
-              studentId: persistedStudentId,
-              enrollmentId: enrollment?.id,
-              examCode,
-              paperSet,
-              attemptedQuestions,
-              totalQuestions,
-              correctAnswers,
-              scanSource,
-              imagePath: null,
-              detectedAnswers: detectedStr,
-              score,
-              maxScore,
-            },
+          const latestExisting = await prisma.scanResult.findFirst({
+            where: { studentId: persistedStudentId, examCode },
+            orderBy: { processedAt: "desc" },
           });
+          const changedFromLatest = latestExisting
+            ? latestExisting.score !== score ||
+              latestExisting.maxScore !== maxScore ||
+              latestExisting.paperSet !== paperSet ||
+              (latestExisting.detectedAnswers ?? "") !== detectedStr
+            : false;
 
-          if (error) err++;
-          else ok++;
+          if (latestExisting && opts.duplicateMode === "ask") {
+            error = `Duplicate found for student+exam. Existing: ${
+              latestExisting.score ?? "—"
+            }/${latestExisting.maxScore ?? "—"}, New: ${score ?? "—"}/${maxScore ?? "—"}${
+              changedFromLatest ? " (changed)" : " (same)"
+            }. Re-upload with duplicate mode: replace_latest or keep_old.`;
+            err++;
+          } else if (latestExisting && opts.duplicateMode === "keep_old") {
+            // Intentionally skip persistence; keep previously finalized score.
+            ok++;
+          } else if (latestExisting && opts.duplicateMode === "replace_latest") {
+            await prisma.scanResult.update({
+              where: { id: latestExisting.id },
+              data: {
+                enrollmentId: enrollment?.id,
+                examCode,
+                paperSet,
+                attemptedQuestions,
+                totalQuestions,
+                correctAnswers,
+                scanSource,
+                imagePath: null,
+                detectedAnswers: detectedStr,
+                score,
+                maxScore,
+                processedAt: new Date(),
+              },
+            });
+            ok++;
+          } else {
+            await prisma.scanResult.create({
+              data: {
+                studentId: persistedStudentId,
+                enrollmentId: enrollment?.id,
+                examCode,
+                paperSet,
+                attemptedQuestions,
+                totalQuestions,
+                correctAnswers,
+                scanSource,
+                imagePath: null,
+                detectedAnswers: detectedStr,
+                score,
+                maxScore,
+              },
+            });
+            ok++;
+          }
         } catch (e) {
           err++;
           error = e instanceof Error ? e.message : "Unknown error";

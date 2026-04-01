@@ -19,6 +19,9 @@ export function BatchOmrForm() {
   const router = useRouter();
   const [state, setState] = useState<UiState>(null);
   const [busy, setBusy] = useState(false);
+  const [duplicateMode, setDuplicateMode] = useState<"ask" | "replace_latest" | "keep_old" | "keep_both">(
+    "ask"
+  );
 
   useEffect(() => {
     if (!state || !("ok" in state) || !state.ok || !state.jobId) return;
@@ -58,6 +61,7 @@ export function BatchOmrForm() {
     setBusy(true);
     setState(null);
     const fd = new FormData(e.currentTarget);
+    fd.set("duplicateMode", duplicateMode);
     try {
       const res = await fetch("/api/omr/batch", { method: "POST", body: fd });
       const j = (await res.json()) as Record<string, unknown>;
@@ -98,6 +102,24 @@ export function BatchOmrForm() {
             Export your scanner output as one PDF (one page per sheet). Each page must match the
             Eduno OMR layout; QR codes identify the student and exam. If OPENAI_API_KEY is set,
             OpenAI Vision is used for answer extraction.
+          </p>
+        </div>
+        <div>
+          <label className="label">Duplicate handling</label>
+          <select
+            className="input"
+            value={duplicateMode}
+            onChange={(e) =>
+              setDuplicateMode(e.target.value as "ask" | "replace_latest" | "keep_old" | "keep_both")
+            }
+          >
+            <option value="ask">Ask/review (do not overwrite duplicates)</option>
+            <option value="replace_latest">Replace latest existing score</option>
+            <option value="keep_old">Keep old score, skip new duplicate</option>
+            <option value="keep_both">Keep both records</option>
+          </select>
+          <p className="mt-1 text-xs text-slate-500">
+            Use Ask mode to detect duplicates and review changes before finalizing.
           </p>
         </div>
         <button type="submit" disabled={busy} className="btn btn-primary">
@@ -142,6 +164,9 @@ export function BatchOmrFormSchool() {
   const router = useRouter();
   const [state, setState] = useState<UiState>(null);
   const [busy, setBusy] = useState(false);
+  const [duplicateMode, setDuplicateMode] = useState<"ask" | "replace_latest" | "keep_old" | "keep_both">(
+    "ask"
+  );
 
   useEffect(() => {
     if (!state || !("ok" in state) || !state.ok || !state.jobId) return;
@@ -181,6 +206,7 @@ export function BatchOmrFormSchool() {
     setBusy(true);
     setState(null);
     const fd = new FormData(e.currentTarget);
+    fd.set("duplicateMode", duplicateMode);
     try {
       const res = await fetch("/api/omr/batch", { method: "POST", body: fd });
       const j = (await res.json()) as Record<string, unknown>;
@@ -215,6 +241,21 @@ export function BatchOmrFormSchool() {
             Only sheets for students in your school are accepted; other pages are reported as errors.
             OpenAI Vision is used automatically when configured.
           </p>
+        </div>
+        <div>
+          <label className="label">Duplicate handling</label>
+          <select
+            className="input"
+            value={duplicateMode}
+            onChange={(e) =>
+              setDuplicateMode(e.target.value as "ask" | "replace_latest" | "keep_old" | "keep_both")
+            }
+          >
+            <option value="ask">Ask/review (do not overwrite duplicates)</option>
+            <option value="replace_latest">Replace latest existing score</option>
+            <option value="keep_old">Keep old score, skip new duplicate</option>
+            <option value="keep_both">Keep both records</option>
+          </select>
         </div>
         <button type="submit" disabled={busy} className="btn btn-primary">
           {busy ? "Processing…" : "Upload & process"}

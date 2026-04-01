@@ -4,7 +4,7 @@ import { ScanForm } from "@/components/ScanForm";
 import { BatchOmrForm } from "@/components/BatchOmrForm";
 import { listActiveExams } from "@/lib/exam-store";
 import { ScoreTable } from "@/components/ScoreTable";
-import { deleteBatchJobAction } from "@/actions/score-admin";
+import { clearAllScanDataAction, deleteBatchJobAction } from "@/actions/score-admin";
 
 export default async function AdminScansPage() {
   const [recent, batchJobs, exams] = await Promise.all([
@@ -32,6 +32,11 @@ export default async function AdminScansPage() {
           class + paper set for automatic scoring. OMR reading works best with straight scans and
           our official sheet layout.
         </p>
+        <form action={clearAllScanDataAction} className="mt-3">
+          <button type="submit" className="btn btn-ghost text-xs">
+            Clear all scan jobs and score data
+          </button>
+        </form>
       </div>
 
       <div className="card p-6">

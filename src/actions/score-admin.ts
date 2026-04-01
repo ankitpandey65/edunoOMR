@@ -34,3 +34,16 @@ export async function deleteSchoolScoresAction(formData: FormData) {
   revalidatePath("/admin/scans");
   return { ok: true as const };
 }
+
+export async function clearAllScanDataAction() {
+  await requireAdmin();
+  await prisma.$transaction([
+    prisma.omrBatchPageResult.deleteMany({}),
+    prisma.omrBatchJob.deleteMany({}),
+    prisma.scanResult.deleteMany({}),
+  ]);
+  revalidatePath("/admin/scans");
+  revalidatePath("/admin/scores");
+  revalidatePath("/school/scores");
+  return { ok: true as const };
+}

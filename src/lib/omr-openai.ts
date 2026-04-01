@@ -62,7 +62,7 @@ export async function detectOmrWithOpenAi(imageBuffer: Buffer): Promise<OpenAiOm
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured.");
 
   const client = new OpenAI({ apiKey, timeout: 45000, maxRetries: 1 });
-  const model = process.env.OPENAI_OMR_MODEL || "gpt-4.1-mini";
+  const model = process.env.OPENAI_OMR_MODEL || "gpt-4.1";
   const dataUrl = `data:image/png;base64,${imageBuffer.toString("base64")}`;
 
   const prompt = [
@@ -77,6 +77,9 @@ export async function detectOmrWithOpenAi(imageBuffer: Buffer): Promise<OpenAiOm
     "- answers: array length 60, each item one of A/B/C/D or empty string if blank/unclear.",
     "- ambiguous: array length 60, true if multiple marks for that question, else false.",
     "- confidence: number 0..1 for overall extraction confidence.",
+    "- Be strict: do NOT guess uncertain bubbles.",
+    "- If uncertain between options, keep answer empty and set ambiguous accordingly.",
+    "- Prefer accuracy over recall.",
     "- Do not include markdown or any extra text.",
   ].join("\n");
 

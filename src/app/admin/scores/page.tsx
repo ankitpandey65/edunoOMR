@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
-import { deleteScanResultAction, deleteSchoolScoresAction } from "@/actions/score-admin";
+import { clearAllScanDataAction, deleteScanResultAction, deleteSchoolScoresAction } from "@/actions/score-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +54,11 @@ export default async function AdminScoresPage({
           School-wise score records. Open a school to view student rows, export CSV, and download
           scorecards.
         </p>
+        <form action={clearAllScanDataAction} className="mt-3">
+          <button type="submit" className="btn btn-ghost text-xs">
+            Clear all scores and batch scan data
+          </button>
+        </form>
       </div>
 
       <div className="card overflow-hidden">

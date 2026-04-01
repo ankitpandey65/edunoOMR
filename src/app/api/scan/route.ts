@@ -197,6 +197,8 @@ export async function POST(req: NextRequest) {
         processedAt: new Date(),
       },
     });
+  } else if (existing.length > 0 && duplicateMode === "keep_old") {
+    // Keep existing finalized score row; do not create a duplicate.
   } else {
     await prisma.scanResult.create({
       data: {

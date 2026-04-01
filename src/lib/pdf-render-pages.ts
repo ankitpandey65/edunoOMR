@@ -40,6 +40,11 @@ export async function createPdfPageRenderer(pdfBuffer: Buffer): Promise<PdfPageR
     );
   }
 
+  const renderScaleRaw = Number(process.env.OMR_PDF_RENDER_SCALE ?? "3");
+  const renderScale = Number.isFinite(renderScaleRaw)
+    ? Math.max(1.5, Math.min(4, renderScaleRaw))
+    : 3;
+
   return {
     totalPages,
     async renderPage(pageNum: number) {
@@ -57,8 +62,8 @@ export async function createPdfPageRenderer(pdfBuffer: Buffer): Promise<PdfPageR
       ].join(";");
       const { stdout } = await execFileAsync(
         "python3",
-        ["-c", renderScript, pdfPath, String(pageNum), "2.25"],
-        { encoding: "buffer", maxBuffer: 25 * 1024 * 1024 }
+        ["-c", renderScript, pdfPath, String(pageNum), String(renderScale)],
+        { encoding: "buffer", maxBuffer: 50 * 1024 * 1024 }
       );
       return Buffer.from(stdout as Buffer);
     },

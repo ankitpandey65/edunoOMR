@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { processOmrPdfUpload } from "@/lib/omr-batch-process";
+import { processOmrPdfUpload, type BatchDuplicateMode } from "@/lib/omr-batch-process";
 
 export const runtime = "nodejs";
 
@@ -24,6 +24,11 @@ export async function POST(req: NextRequest) {
 
   const buf = Buffer.from(await file.arrayBuffer());
   const schoolIdFilter = s.role === "SCHOOL" ? s.schoolId : null;
+  const modeRaw = String(form.get("duplicateMode") ?? "ask").trim();
+  const duplicateMode: BatchDuplicateMode =
+    modeRaw === "replace_latest" || modeRaw === "keep_old" || modeRaw === "keep_both"
+      ? modeRaw
+      : "ask";
 
   try {
     const result = await processOmrPdfUpload({
@@ -31,6 +36,7 @@ export async function POST(req: NextRequest) {
       fileName: file.name,
       uploadedByRole: s.role,
       schoolIdFilter,
+      duplicateMode,
     });
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {

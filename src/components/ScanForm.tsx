@@ -101,7 +101,7 @@ export function ScanForm({ exams }: { exams: ExamOption[] }) {
     await submitFd(fd);
   }
 
-  async function resolveDuplicate(mode: "replace_latest" | "save_new") {
+  async function resolveDuplicate(mode: "replace_latest" | "keep_old") {
     if (!pendingFd) return;
     const fd = new FormData();
     for (const [k, v] of pendingFd.entries()) fd.append(k, v);
@@ -170,8 +170,8 @@ export function ScanForm({ exams }: { exams: ExamOption[] }) {
                 <button type="button" className="btn btn-primary" onClick={() => resolveDuplicate("replace_latest")} disabled={busy}>
                   Replace latest
                 </button>
-                <button type="button" className="btn" onClick={() => resolveDuplicate("save_new")} disabled={busy}>
-                  Keep both (save new)
+                <button type="button" className="btn" onClick={() => resolveDuplicate("keep_old")} disabled={busy}>
+                  Keep existing (discard new)
                 </button>
               </div>
             </div>
