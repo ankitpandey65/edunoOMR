@@ -202,3 +202,20 @@ model ScanResult {
 
   @@index([studentId, examCode])
 }
+
+model EmailOtp {
+  id          String    @id @default(cuid())
+  email       String
+  purpose     String
+  codeHash    String
+  payload     String?
+  expiresAt   DateTime
+  resendAfter DateTime
+  attempts    Int       @default(0)
+  verifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([email, purpose])
+  @@index([expiresAt])
+}

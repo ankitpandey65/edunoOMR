@@ -18,6 +18,9 @@ export default function LoginPage() {
           <span className="text-slate-400">school@demo.local</span> / school123
         </p>
         <p className="mt-4 text-center text-xs">
+          <Link href="/register" className="mr-3 text-indigo-400/90 hover:underline">
+            Register with OTP
+          </Link>
           <Link href="/" className="text-sky-400/90 hover:underline">
             Back
           </Link>
